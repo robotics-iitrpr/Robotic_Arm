@@ -85,4 +85,86 @@ The project integrates **ESP32 microcontroller**, **Python-based computer vision
 
 ## 📂 Project Structure
 
+├── esp32/
+│ ├── joystick_control/
+│ ├── websocket_control/
+│ ├── common/
+├── python/
+│ ├── hand_gesture_control/
+│ ├── pick_and_place/
+│ ├── utils/
+├── web/
+│ ├── index.html
+│ ├── websocket_client.js
+│ └── styles.css
+└── README.md
+
+
+---
+
+## ⚙️ Hardware Requirements
+
+- **ESP32 Development Board**
+- **6x Servo Motors (3 -MG995 , 3 -SG90 )**
+- **3x Analog Joysticks**
+- **Camera/ laptop webcam (for gesture detection)**
+- **External Power Supply for Servos -- Lipo with buck converter**
+- **Jumper Wires, Breadboard, and Connectors**
+
+---
+
+## 🧩 Software Setup
+
+### 🖥️ Arduino IDE Setup
+1. Install **ESP32 board package** in Arduino IDE.  
+2. Install libraries:
+   - `ESP32Servo.h`
+   - `WiFi.h`
+   - `WebSocketsClient.h`
+3. Flash the corresponding `.ino` file depending on the mode.
+
+### 🐍 Python Setup
+```bash
+pip install opencv-contrib-python pyserial numpy mediapipe
+
+▶️ How to Run
+1️⃣ Joystick Mode
+
+Upload joystick_control.ino to ESP32.
+
+Connect joysticks to analog pins.
+
+Move joysticks to control each servo axis.
+
+2️⃣ Web Mode
+
+Upload websocket_control.ino to ESP32.
+
+Open the hosted web interface.
+
+Adjust angles and observe real-time servo motion.
+
+3️⃣ Gesture Mode
+
+Connect camera and ESP32 via USB.
+
+Run:
+
+python hand_gesture_control.py
+
+
+Move your hand in front of the camera to control servos.
+
+4️⃣ Pick & Place Mode
+
+Run:
+
+python pick_and_place.py
+
+
+Enter pick coordinates in terminal.
+
+The arm will autonomously pick and place the object.
+
+
 

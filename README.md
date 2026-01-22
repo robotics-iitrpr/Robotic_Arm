@@ -1,170 +1,267 @@
-# 🦾 6-DOF Robotic Arm — Multi-Mode Control (ESP32 + Python + Web)
+# 6 DOF Robotic Arm Control System
 
-This project demonstrates a **6 Degree of Freedom (6-DOF) Robotic Arm** powered by **ESP32**, capable of operating in **four distinct modes**:  
-**1️⃣ Joystick Control · 2️⃣ Web Interface Control · 3️⃣ Hand Gesture Control · 4️⃣ Autonomous Pick & Place**
+A comprehensive robotic arm control system featuring multiple input methods including gesture recognition, joystick control, automated pick-and-place operations, and web-based remote control.
 
-Each mode showcases a unique way of controlling the robotic arm using embedded systems, web technologies, and computer vision.
+## Features
 
----
+- **6 Degrees of Freedom (DOF)**: Full control over base rotation, shoulder, elbow, wrist roll, wrist pitch, and wrist yaw
+- **Multiple Control Methods**:
+  - Gesture control using computer vision (MediaPipe)
+  - Joystick control with analog inputs
+  - Automated pick-and-place with inverse kinematics
+  - Web-based control via WebSocket relay
+- **Computer Vision Integration**: ArUco marker pose estimation for object tracking
+- **Real-time Communication**: Serial and WebSocket communication protocols
+- **Modular Design**: Separate firmware and software for different control modes
 
-## 🚀 Table of Contents
+## Project Structure
 
-- [Overview](#-overview)
-- [Modes of Operation](#-modes-of-operation)
-  - [Joystick Control](#1-joystick-control)
-  - [Web Interface Control](#2-web-interface-control)
-  - [Hand Gesture Control](#3-hand-gesture-control)
-  - [Autonomous Pick--Place](#4-autonomous-pick--place)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Hardware Requirements](#-hardware-requirements)
-- [Software Setup](#-software-setup)
-- [How to Run](#-how-to-run)
-- [System Overview](#-system-overview)
-- [Future Improvements](#-future-improvements)
-- [License](#-license)
-- [Acknowledgements](#-acknowledgements)
+```
+Robotic_Arm/
+├── Gesture_control/
+│   ├── robo_gesture.py              # Python script for gesture-based control
+│   └── Esp_firmware/
+│       └── robo_arm_keyboard/
+│           └── robo_arm_keyboard.ino # ESP32 firmware for gesture control
+├── Joystick_control/
+│   └── robotic_arm_joystick_esp/
+│       └── robotic_arm_joystick_esp.ino # ESP32 firmware for joystick control
+├── Pick_And_Place/
+│   ├── camera_calibration.py        # Camera calibration script
+│   ├── pick_and_place.py            # Main pick-and-place script with IK
+│   ├── pnp_forward_kinematics.py    # Alternative pick-and-place with presets
+│   ├── Pose_estimation.py           # ArUco marker pose estimation
+│   ├── pnp.txt                      # Notes on angle presets
+│   ├── tempCodeRunnerFile.py        # Temporary test file
+│   ├── testing-function.py          # Testing utilities
+│   └── pnp_esp_code/
+│       └── pnp_esp_code.ino         # ESP32 firmware for pick-and-place
+└── Web_control/
+    ├── package.json                 # Node.js dependencies
+    ├── robotic_arm_ui.html          # Web-based control interface
+    ├── server.js                    # WebSocket relay server
+    └── Esp_firmware/
+        └── esp_firmware_robo_arm.ino # ESP32 firmware for web control
+```
 
----
+## Hardware Requirements
 
-## 🧠 Overview
+- ESP32 microcontroller (x2 - one for each control mode)
+- 6x Servo motors (MG996R or similar, capable of 0-180° rotation)
+- Webcam (for gesture control and pose estimation)
+- Analog joysticks (for joystick control)
+- Robotic arm frame with appropriate mounting
+- Power supply for servos (typically 5-6V)
+- ArUco markers (for pose estimation)
 
-The 6-DOF robotic arm is designed to perform precise movements and tasks under multiple control interfaces.  
-The project integrates **ESP32 microcontroller**, **Python-based computer vision**, and **WebSocket communication** to deliver real-time, versatile control.
+### Servo Pin Configuration
 
----
+**Gesture Control ESP32:**
+- Base: GPIO 5
+- Shoulder: GPIO 4
+- Elbow: GPIO 2
+- Wrist Roll: GPIO 22
+- Wrist Pitch: GPIO 19
+- Wrist Yaw: GPIO 18
 
-## 🔧 Modes of Operation
+**Joystick Control ESP32:**
+- Base: GPIO 5
+- Shoulder: GPIO 4
+- Elbow: GPIO 2
+- Wrist: GPIO 15
+- Wrist Yaw: GPIO 22
+- Gripper: GPIO 23
 
-### 1. 🎮 Joystick Control
-- Runs directly on the **ESP32**.  
-- Utilizes **three analog joysticks**, each axis controlling one servo motor.  
-- The control logic:
-  - When joystick readings exceed a defined **threshold**, the corresponding servo rotates by a **fixed delta angle per second**.
-- Enables smooth, manual control of all six servo motors.
+**Pick-and-Place ESP32:**
+- Base: GPIO 5
+- Shoulder: GPIO 4
+- Elbow: GPIO 2
+- Wrist Roll: GPIO 22
+- Wrist Pitch: GPIO 19
+- Gripper: GPIO 18
 
----
+**Web Control ESP32:**
+- Joint 1 (Base): GPIO 5
+- Joint 2 (Shoulder): GPIO 4
+- Joint 3 (Elbow): GPIO 2
+- Joint 4 (Wrist Roll): GPIO 15
+- Joint 5 (Wrist Pitch): GPIO 22
+- Joint 6 (Wrist Yaw): GPIO 25
+- Gripper: GPIO 21
 
-### 2. 🌐 Web Interface Control
-- Built using **ESP32 Wi-Fi** and **WebSocket communication**.  
-- The web client (hosted via **Render.com**) sends servo angles through a **relay server** to the ESP32.  
-- ESP32 receives and executes the movement commands in real-time.  
-- Features a **responsive web interface** for angle input and control.
+## Software Requirements
 
----
+### Python Dependencies
+```
+opencv-python
+mediapipe
+pyserial
+numpy
+scipy
+```
 
-### 3. ✋ Hand Gesture Control
-- Implemented in **Python** using **OpenCV** for real-time hand tracking.  
-- Detects and counts **number of fingers raised** using a webcam feed.  
-- Each finger count corresponds to a specific servo motor.  
-- The mapped servo moves by a **fixed delta angle** when the gesture is detected.  
-- Communicates with ESP32 via **serial port** (`pyserial`).
+### Arduino Libraries
+- ESP32Servo
+- WebSockets (for web control)
+- ArduinoJson (for web control)
 
----
+### Node.js Dependencies
+```
+ws
+```
 
-### 4. 🤖 Autonomous Pick & Place
-- Python-based **autonomous control mode**.  
-- The user inputs **pick coordinates (x, y, z)** via terminal.  
-- Python computes **inverse kinematics** to determine the necessary servo angles.  
-- ESP32 executes the pick-and-place motion sequence.  
-- Demonstrates fully automated operation.
+## Installation and Setup
 
----
+### 1. Gesture Control Setup
 
-## 🧰 Tech Stack
-
-| Component | Technology |
-|------------|-------------|
-| **Microcontroller** | ESP32 |
-| **Languages** | C++ (Arduino), Python, HTML, JavaScript |
-| **Libraries (Arduino)** | Servo, WiFi, WebSocket |
-| **Libraries (Python)** | OpenCV, PySerial, NumPy |
-| **Web Hosting** | Render.com (WebSocket relay & UI hosting) |
-
----
-
-## 📂 Project Structure
-
-├── esp32/
-│ ├── joystick_control/
-│ ├── websocket_control/
-│ ├── common/
-├── python/
-│ ├── hand_gesture_control/
-│ ├── pick_and_place/
-│ ├── utils/
-├── web/
-│ ├── index.html
-│ ├── websocket_client.js
-│ └── styles.css
-└── README.md
-
-
----
-
-## ⚙️ Hardware Requirements
-
-- **ESP32 Development Board**
-- **6x Servo Motors (3 -MG995 , 3 -SG90 )**
-- **3x Analog Joysticks**
-- **Camera/ laptop webcam (for gesture detection)**
-- **External Power Supply for Servos -- Lipo with buck converter**
-- **Jumper Wires, Breadboard, and Connectors**
-
----
-
-## 🧩 Software Setup
-
-### 🖥️ Arduino IDE Setup
-1. Install **ESP32 board package** in Arduino IDE.  
-2. Install libraries:
-   - `ESP32Servo.h`
-   - `WiFi.h`
-   - `WebSocketsClient.h`
-3. Flash the corresponding `.ino` file depending on the mode.
-
-### 🐍 Python Setup
+1. Install Python dependencies:
 ```bash
-pip install opencv-contrib-python pyserial numpy mediapipe
+pip install opencv-python mediapipe pyserial numpy
+```
 
-▶️ How to Run
-1️⃣ Joystick Mode
+2. Upload `robo_arm_keyboard.ino` to ESP32
+3. Run the Python script:
+```bash
+python robo_gesture.py
+```
 
-Upload joystick_control.ino to ESP32.
+### 2. Joystick Control Setup
 
-Connect joysticks to analog pins.
+1. Connect analog joysticks to ESP32 pins (25,26,34,35,32,33)
+2. Upload `robotic_arm_joystick_esp.ino` to ESP32
+3. Power on the system - control is automatic
 
-Move joysticks to control each servo axis.
+### 3. Pick-and-Place Setup
 
-2️⃣ Web Mode
-
-Upload websocket_control.ino to ESP32.
-
-Open the hosted web interface.
-
-Adjust angles and observe real-time servo motion.
-
-3️⃣ Gesture Mode
-
-Connect camera and ESP32 via USB.
-
-Run:
-
-python hand_gesture_control.py
-
-
-Move your hand in front of the camera to control servos.
-
-4️⃣ Pick & Place Mode
-
-Run:
-
+#### Option A: Inverse Kinematics
+1. Install Python dependencies (same as gesture control)
+2. Upload `pnp_esp_code.ino` to ESP32
+3. Run the script:
+```bash
 python pick_and_place.py
+```
 
+#### Option B: Preset Angles
+1. Upload `pnp_esp_code.ino` to ESP32
+2. Run the script:
+```bash
+python pnp_forward_kinematics.py
+```
 
-Enter pick coordinates in terminal.
+#### Camera Calibration (Optional)
+```bash
+python camera_calibration.py
+```
 
-The arm will autonomously pick and place the object.
+#### Pose Estimation
+```bash
+python Pose_estimation.py
+```
 
+### 4. Web Control Setup
 
+1. Install Node.js dependencies:
+```bash
+cd Web_control
+npm install
+```
 
+2. Update WiFi credentials in `esp_firmware_robo_arm.ino`
+3. Update WebSocket relay URL in both `server.js` and `esp_firmware_robo_arm.ino`
+4. Upload ESP32 firmware
+5. Start the server:
+```bash
+npm start
+```
+
+6. Open `http://localhost:8080` in your browser
+
+## Usage
+
+### Gesture Control
+- Show 1-5 fingers to control different joints
+- Hand position (left/right) determines direction (+/-)
+- Fist gesture controls gripper
+
+### Joystick Control
+- Move joysticks to control corresponding joints
+- Automatic deadzone handling prevents jitter
+
+### Pick-and-Place
+- Enter X,Y coordinates for target position
+- System calculates inverse kinematics or uses presets
+- Automatic pick-and-place sequence execution
+
+### Web Control
+- Connect to the WebSocket relay
+- Use sliders to control joint angles
+- Save/load presets
+- Real-time status feedback
+
+## Configuration
+
+### Serial Communication
+- Baud rate: 115200
+- Default COM port: COM4 (Windows) - update in scripts as needed
+
+### Robotic Arm Dimensions (Pick-and-Place)
+- L1 (base to shoulder): 10.0 cm
+- L2 (shoulder to elbow): 13.0 cm
+- L3 (elbow to wrist): 10.0 cm
+
+### Servo Limits
+- Base: 0-180°
+- Shoulder: 40-170°
+- Elbow: 0-180°
+- Wrist: 0-160°
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Serial Connection Failed**
+   - Check COM port in device manager
+   - Ensure ESP32 is properly connected
+   - Verify baud rate matches
+
+2. **Servo Not Moving**
+   - Check power supply voltage
+   - Verify servo pin connections
+   - Ensure servo limits are not exceeded
+
+3. **WebSocket Connection Failed**
+   - Check WiFi credentials
+   - Verify relay server URL
+   - Check firewall settings
+
+4. **Camera Not Detected**
+   - Try different camera index in scripts
+   - Check camera permissions
+   - Ensure OpenCV installation
+
+### Debug Mode
+Enable serial output on ESP32 for debugging:
+```cpp
+Serial.begin(115200);
+Serial.println("Debug message");
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## License
+
+MIT License - see LICENSE file for details
+
+## Acknowledgments
+
+- OpenCV for computer vision
+- MediaPipe for gesture recognition
+- ESP32 community for hardware support
+- WebSocket libraries for real-time communication</content>
+<parameter name="filePath">c:\Users\ISHAN\OneDrive\Desktop\OLD_desktop_files\Robotic_Arm\README.md

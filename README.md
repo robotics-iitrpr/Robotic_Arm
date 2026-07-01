@@ -64,31 +64,6 @@ Robotic_Arm/
 - Wrist Pitch: GPIO 19
 - Wrist Yaw: GPIO 18
 
-**Joystick Control ESP32:**
-- Base: GPIO 5
-- Shoulder: GPIO 4
-- Elbow: GPIO 2
-- Wrist: GPIO 15
-- Wrist Yaw: GPIO 22
-- Gripper: GPIO 23
-
-**Pick-and-Place ESP32:**
-- Base: GPIO 5
-- Shoulder: GPIO 4
-- Elbow: GPIO 2
-- Wrist Roll: GPIO 22
-- Wrist Pitch: GPIO 19
-- Gripper: GPIO 18
-
-**Web Control ESP32:**
-- Joint 1 (Base): GPIO 5
-- Joint 2 (Shoulder): GPIO 4
-- Joint 3 (Elbow): GPIO 2
-- Joint 4 (Wrist Roll): GPIO 15
-- Joint 5 (Wrist Pitch): GPIO 22
-- Joint 6 (Wrist Yaw): GPIO 25
-- Gripper: GPIO 21
-
 ## Software Requirements
 
 ### Python Dependencies
